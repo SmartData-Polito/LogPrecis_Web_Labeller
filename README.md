@@ -2,6 +2,8 @@
 
 This repo contains the visual interface to visualise/expand the labelled dataset used for [LogPrecis](https://github.com/SmartData-Polito/logprecis).
 
+![LogPrecis Web Labeller](web_interface_sample.png)
+
 ## How it works
 
 ---
