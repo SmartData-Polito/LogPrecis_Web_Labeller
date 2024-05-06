@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labeling Interface 2</title>
+    <!-- Link to the external CSS file -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Labeling Interface</h1>
+        <div class="session-info-box">
+            <p id="session-info">Session {{ id }} - {{remaining}} remaining!</p>
+        </div>
+        <input type="hidden" id="original-session" value="{{ unlabelled_session }}">
+        <input type="hidden" id="predictions" value="{{ predictions }}">
+        <div id="text-container">
+            <!-- Original session text goes here -->
+            <p id="unlabelled-session">{{ unlabelled_session }}</p>
+        </div>
+        <h2>Choose a label:</h2>
+        <div class="button-and-label-container">
+            <div class="button-container" id="button-container">
+                <!-- Buttons will be dynamically added here -->
+            </div>
+            <div id="labels-summary" class="label-summary"></div>
+            <div class="form-container">
+                <form id="skip-form" method="POST" action="/skip">
+                    <button type="submit" class="button secondary">Skip</button>
+                </form>
+                <form id="continue-form" method="POST" action="/continue">
+                    <button id="continue-btn" type="submit" class="button secondary" disabled>Continue</button>
+                </form>
+                <form id="exit-form" method="POST" action="/exit">
+                    <button type="submit" class="button secondary">Conclude Labelling</button>
+                </form>
+            </div>
+        </div>
+    </div>
+<script>
+    // Define color mappings for each class using Flask variable
+    var classColors = {{ class_colors | tojson | safe }};
+    var originalSession = document.getElementById('original-session').value;
+    var predictions = JSON.parse(document.getElementById('predictions').value);
+
+    // Automatically label sessions based on predictions in case of weakly supervision
+    predictions.forEach((prediction, nodeId) => {
+        var paragraph = document.getElementById('unlabelled-session');
+        var end = prediction.end
+        var confidence = prediction.score
+        var range = setSelection(paragraph, 0, end, nodeId);
+        var label = prediction.label;
+        var color = classColors[label];
+        highlightSelectedText(label, color, range, confidence);
+    });
+
+    // Dynamically create buttons for each class
+    var buttonContainer = document.getElementById('button-container');
+    for (var label in classColors) {
+        var color = classColors[label];
+        var button = document.createElement('button');
+        button.textContent = label;
+        button.style.backgroundColor = color;
+        button.className = 'button';
+        button.addEventListener('click', function() {
+            var selectedLabel = this.textContent;
+            var selectedColor = classColors[selectedLabel];
+            var selection = window.getSelection();
+            var range = selection.getRangeAt(0);
+            const confidence = 1 // when the labeller gives the label, it's always confident it's a good call
+            highlightSelectedText(selectedLabel, selectedColor, range, confidence);
+        });
+        buttonContainer.appendChild(button);
+    }
+
+    function setSelection(paragraph, startOffset, endOffset, nodeId) {
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        // Get the text node containing the paragraph content
+        var textNode;
+        if (nodeId === 0) {
+            textNode = paragraph.childNodes[nodeId];
+        } else {// every time we add a span, we also add an empty string (2 nodes per addition)
+            textNode = paragraph.childNodes[nodeId * 2];
+        }        
+        // Create a range object
+        var range = document.createRange();
+        // Set the start and end positions of the range
+        range.setStart(textNode, startOffset);
+        range.setEnd(textNode, endOffset);
+        return range;
+    }
+
+    function highlightSelectedText(label, color, range, confidence) {        
+        var selectedText = range.toString();
+        // Check if the selected text is not empty
+        if (selectedText.length === 0) {
+            alert("Please select some text to label.");
+            return;
+        }
+        // Check if anything before the selected portion has already been labelled
+        var previousText = range.startContainer.textContent.substring(0, range.startOffset);
+        var alreadyHighlightedBefore = (previousText.includes('<span class="selected"') || previousText.length === 0);
+
+        if (!alreadyHighlightedBefore) {
+            alert("You cannot label a portion of text if anything before that portion was not already labelled.");
+            return;
+        }
+
+        // Check if the selected text has already been highlighted
+        var alreadyHighlighted = Array.from(range.cloneContents().querySelectorAll('.selected')).some(function(span) {
+            return span.style.backgroundColor !== 'transparent' && span.style.backgroundColor !== '';
+        });
+
+        if (!alreadyHighlighted) {
+            // Replace original text with highlighted one
+            var span = document.createElement('span');
+            span.textContent = selectedText;
+            span.className = 'selected';
+            span.style.backgroundColor = hexToRGBA(color, confidence);
+            // delete old content
+            range.deleteContents();
+            // replace with new one
+            range.insertNode(span);
+            // Create an object to store information about the selected sub-portion
+            var newSpan = {
+                label: label,
+                color: color,
+                text: selectedText,
+                span: span, // store the span element
+                range: range // also save the range of the corresponding span
+            };
+            // Display the selected sub-portion with its label and color on a summary box
+            displaySelectedNewLabelledText(newSpan);
+        } else {
+            alert("This portion of text has already been highlighted!");
+        }
+    }
+
+    // Function to convert hexadecimal color to RGBA with transparency
+    function hexToRGBA(hex, alpha) {
+        // Remove the "#" symbol
+        hex = hex.slice(1);
+        
+        // Convert hex to RGB
+        var r = parseInt(hex.substring(0, 2), 16);
+        var g = parseInt(hex.substring(2, 4), 16);
+        var b = parseInt(hex.substring(4, 6), 16);
+        
+        // Return RGBA string with the specified alpha
+        return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
+    }
+
+    function displaySelectedNewLabelledText(newSpan) {
+        // Add the new span in the summary label container
+        var labelsContainer = document.getElementById('labels-summary');
+        var div = document.createElement('div');
+        // Add a class for styling
+        div.className = 'label-container'; 
+        var labelWithBold = '<strong>' + newSpan.label + '</strong>';
+        div.innerHTML = '<button>x</button>' + labelWithBold + " -- " + newSpan.text; // Append delete button before label content        
+        div.style.backgroundColor = newSpan.color;
+        // Add onclick event for the delete button
+        div.querySelector('button').onclick = function() {
+            // Before removing, get all labeled sub-portions after the current one
+            // (We want to keep the labelling order: anything after the deletion must be also cancelled)
+            var labeledSubPortions = Array.from(div.parentNode.children).slice(Array.from(div.parentNode.children).indexOf(div) + 1);
+            // Remove the div associated to the clicked delete button
+            div.remove();
+            // Go back to the span we created in the original text and revert it to the simple text
+            newSpan.range.deleteContents();
+            // Create a text node with the new text
+            var oldTextNode = document.createTextNode(newSpan.text);
+            // Insert the new text node at the start of the range
+            newSpan.range.insertNode(oldTextNode);
+            // Trigger delete action for each FOLLOWING sub-portion
+            labeledSubPortions.forEach(function(subPortion) {
+                var deleteButton = subPortion.querySelector('button');
+                deleteButton.click(); // Trigger click event
+            });
+            checkLabels(); // Check labels after removal
+        };
+        
+        labelsContainer.appendChild(div);
+        checkLabels(); // Check labels after addition
+    }
+
+    function checkLabels() {
+        // Idea here is: if all labelled texts are converted to spans, then there shall not be any remaining <p> element in the text
+        var allParagraphs = document.querySelectorAll('#text-container p');
+        var continueButton = document.getElementById('continue-btn');
+        var allConverted = true;
+
+        allParagraphs.forEach(function(paragraph) {
+            if (containsNonClassText(paragraph)) {
+                allConverted = false;
+                return; // exit loop early if any paragraph contains non-class text or elements
+            }
+        });
+
+        if (allConverted) {
+            continueButton.disabled = false;
+        } else {
+            continueButton.disabled = true;
+        }
+    }
+
+    function containsNonClassText(element) {
+        for (var i = 0; i < element.childNodes.length; i++) {
+            var node = element.childNodes[i];
+            if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() !== '') {
+                // If it's a non-empty text node
+                return true;
+            } else if (node.nodeType === Node.ELEMENT_NODE && !node.hasAttribute('class')) {
+                // If it's an element without a class
+                return true;
+            }
+        }
+        return false;
+    }
+    // Prevent editing of the original unlabelled session
+    document.getElementById('text-container').addEventListener('input', function(event) {
+        event.preventDefault();
+        event.target.textContent = originalSession;
+    });
+
+    document.getElementById('continue-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Extract labeled data from the labels-container
+        var labeledData = [];
+        var labelContainers = document.querySelectorAll('.label-container');
+        labelContainers.forEach(function(container) {
+            var label = container.textContent.split(' -- ')[0].trim().slice(1);
+            var text = container.textContent.split(' -- ')[1].trim();
+            labeledData.push({ label: label, text: text });
+        });
+
+        // Send the labeled data to the backend
+        fetch('/continue', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(labeledData)
+        })
+        .then(response => {
+            if (response.ok) {
+                // Redirect to the next page or session if the response is successful
+                window.location.href = response.url; // Assuming the server returns the URL of the next page or session
+            } else {
+                throw new Error('Network response was not ok.');
+            }
+        })
+        .catch(error => {
+            // Handle error
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.3;
+    background-color: #f8f9fa;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /*Prevents scrolling*/
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+h1, h2 {
+    color: #007bff;
+    font-size: 1.2em;
+}
+
+.session-info-box {
+    text-align: center; /* Center the text horizontally */
+    font-weight: bold; /* Make the text bold */
+    padding: 1px; /* Add padding */
+    background-color: #ccc; /* Background color that fits the rest of the webpage */
+    border-radius: 5px; /* Add some border radius for rounded corners */
+    margin-bottom: 1px; /* Add margin at the bottom for spacing */
+    font-size:smaller
+}
+
+#text-container {
+    text-align: justify; /* Justify the text */
+    overflow: hidden; /* Hide any overflowing text */
+    padding: 5px; /* Add padding */
+}
+
+.button-and-label-container {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: stretch; /* Ensure containers stretch to fill the width */
+    margin-bottom: 10px;
+}
+
+.label-summary {
+    flex: 1; /* Make both containers fill available space equally */
+    width: 100%; /* Ensure containers take full width */
+    box-sizing: border-box; /* Include padding and border in the width calculation */
+}
+
+.button-container {
+    display: flex;
+    justify-content: center; /* Align buttons horizontally at the center */
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 2px;
+}
+
+.form-container {
+    display: flex;
+    justify-content: center; /* Align buttons horizontally at the center */
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 2px;
+}
+
+/* Label Container Styles */
+.label-summary {
+    min-height: 200px; /* Minimum height for the label container */
+    max-height: 300px; /* Maximum height for the label container */
+    overflow-y: auto; /* Enable vertical scrollbar if content exceeds container height */
+    margin-bottom: 10px;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Styles */
+.button {
+    padding: 5px 10px;
+    font-size: 0.9em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.button.secondary {
+    background-color: #6c757d;
+}
+
+/* Center the label of the class-dropdown */
+#class-dropdown {
+    text-align: center;
+}
+
+#class-dropdown option {
+    text-align: left; /* Align options to the left */
+}
+
+/* Continue Button */
+#continue-btn {
+    padding: 5px 10px;
+    font-size: 0.9em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+#continue-btn:enabled {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+#continue-btn:disabled {
+    background-color: #ccc;
+    color: #999;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 10px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 2px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+/* Adjustments for smaller screens */
+@media (max-width: 600px) {
+    .container {
+        padding: 5px; /* Adjust padding for smaller screens */
+    }
+
+    h1, h2 {
+        font-size: 1em; /* Reduce font size for smaller screens */
+    }
+
+    .button-and-label-container {
+        flex-direction: column; /* Stack elements vertically for smaller screens */
+    }
+
+    .button-container, .label-summary {
+        margin-bottom: 5px; /* Reduce margin between elements for smaller screens */
+    }
+
+    .button {
+        font-size: 0.8em; /* Reduce button font size for smaller screens */
+    }
+}
+
+.label-container button {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: none;
+    color: black;
+    font-size: 15px; 
+    font-weight: bold;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: color 0.3s ease;
+
+}
+
+.label-container button:hover {
+    box-shadow: 0 0 0 2px black; /* Add a shadow to simulate the border */
+}   
+
