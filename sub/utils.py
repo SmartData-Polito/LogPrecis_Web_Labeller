@@ -183,7 +183,8 @@ def extract_fingerprint(output):
         label = item["label"]
         text = item["text"].strip()
         statements = divide_statements(text)
-        fingerprint.append(f"{label} - {len(statements)+cumulator_len}")
+        # Notice: start counting from 0, not from 1 (reason of -1)
+        fingerprint.append(f"{label} - {len(statements)+cumulator_len-1}")
         cumulator_len += len(statements)
     return " -- ".join(fingerprint)
 
@@ -258,5 +259,6 @@ def verify_output(fingerprint, session):
         Flag: If not all statements have been labelled based on the fingerprint.
     """
     statements = divide_statements(session=session)
-    last_labelled_statement = int(fingerprint.split(" -- ")[-1].split(" - ")[1])
+    # we have to sum 1 (numeration goes from 0 to N-1)
+    last_labelled_statement = int(fingerprint.split(" -- ")[-1].split(" - ")[1]) + 1
     return len(statements) == last_labelled_statement
