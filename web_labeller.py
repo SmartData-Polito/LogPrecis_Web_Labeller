@@ -278,7 +278,9 @@ class WebApp:
             session=self.unlabelled_df.iloc[self.current_index]["session"],
         ):
             self.save_current_results()
-            raise Exception("Error: not all statements have been labelled!")
+            raise Exception(
+                "Error: not all statements have been labelled/the same statement is labelled with different tactics!"
+            )
         results = []
         column_names = [
             column for column in self.column_names if column != "fingerprint"

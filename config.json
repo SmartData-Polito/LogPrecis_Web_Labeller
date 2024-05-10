@@ -1,8 +1,8 @@
 {
   "input_path": "./data_sample/",
-  "input_file": "additional_random_sample.parquet",
+  "input_file": "unlabelled_sample_data.parquet",
   "output_path": "./results/",
-  "output_file": "additional_random_sample.parquet",
+  "output_file": "sanity_checks.parquet",
   "main_html": "index.html",
   "labels": [
     "Discovery",
